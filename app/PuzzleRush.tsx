@@ -1,0 +1,27 @@
+'use client';
+import {useEffect,useMemo,useRef,useState} from 'react';
+import {Chess} from 'chess.js';
+import Board from './Board';
+import {PUZZLES,applyPuzzleMove,puzzleMove} from '../src/puzzles.mjs';
+
+type Props={close:()=>void};
+export default function PuzzleRush({close}:Props){
+  const [phase,setPhase]=useState<'intro'|'running'|'finished'>('intro'),[index,setIndex]=useState(0),[round,setRound]=useState(0);
+  const [fen,setFen]=useState(PUZZLES[0].fen),[step,setStep]=useState(0),[selected,setSelected]=useState(''),[score,setScore]=useState(0),[errors,setErrors]=useState(0),[seconds,setSeconds]=useState(180),[message,setMessage]=useState('Encontre o melhor lance.');
+  const [shake,setShake]=useState(false),[best,setBest]=useState(0),timer=useRef<any>(null),reply=useRef<any>(null);
+  const [unlimited,setUnlimited]=useState(false);
+  const current=PUZZLES[index],board=useMemo(()=>new Chess(fen),[fen]);
+  useEffect(()=>{try{setBest(Number(localStorage.getItem('rookivo-puzzle-rush-best'))||0);}catch{}return()=>{clearInterval(timer.current);clearTimeout(reply.current);};},[]);
+  useEffect(()=>{if(phase!=='running'||unlimited)return;timer.current=setInterval(()=>setSeconds(value=>{if(value<=1){clearInterval(timer.current);setPhase('finished');return 0;}return value-1;}),1000);return()=>clearInterval(timer.current);},[phase,unlimited]);
+  useEffect(()=>{if(phase==='finished'&&score>best){setBest(score);try{localStorage.setItem('rookivo-puzzle-rush-best',String(score));}catch{}}},[phase,score,best]);
+  function load(next:number,nextRound=round){const normalized=next%PUZZLES.length;setIndex(normalized);setRound(nextRound);setFen(PUZZLES[normalized].fen);setStep(0);setSelected('');setMessage('Encontre o melhor lance.');}
+  function start(mode=unlimited){setUnlimited(mode);setScore(0);setErrors(0);setSeconds(180);setRound(0);load(0,0);setPhase('running');}
+  function solved(){const value=score+1;setScore(value);setMessage('Correto! Próximo desafio…');reply.current=setTimeout(()=>{const next=index+1;if(next>=PUZZLES.length)load(0,round+1);else load(next,round);},520);}
+  function move(from:string,to:string){if(phase!=='running'||(!unlimited&&errors>=3))return;const played=puzzleMove(fen,from,to);setSelected('');if(!played||played.uci!==current.line[step]){const misses=errors+1;setErrors(misses);setMessage(!unlimited&&misses>=3?'Fim da corrida: três erros.':'Esse não é o lance. Tente outra vez.');setShake(true);setTimeout(()=>setShake(false),260);if(!unlimited&&misses>=3)setPhase('finished');return;}setFen(played.fen);if(step+1>=current.line.length){solved();return;}setMessage('Boa! O adversário responde…');reply.current=setTimeout(()=>{const responseFen=applyPuzzleMove(played.fen,current.line[step+1]);setFen(responseFen);if(step+2>=current.line.length)solved();else{setStep(step+2);setMessage('Continue a combinação.');}},330);}
+  const minutes=Math.floor(seconds/60),clock=`${minutes}:${String(seconds%60).padStart(2,'0')}`;
+  return <div className="modal-backdrop puzzle-backdrop" onClick={close}><section className="modal puzzle-rush" role="dialog" aria-modal="true" aria-labelledby="puzzle-title" onClick={e=>e.stopPropagation()}>
+    <div className="puzzle-head"><div><span>ROOKIVO</span><h2 id="puzzle-title">⚡ Corrida de Puzzles</h2></div><button aria-label="Fechar corrida de puzzles" onClick={close}>×</button></div>
+    {phase==='intro'?<div className="puzzle-intro"><div className="puzzle-bolt">♞</div><h3>Treine tática no seu ritmo</h3><p>Escolha uma corrida de 3 minutos ou pratique sem relógio. São {PUZZLES.length} posições locais que se repetem em novas rodadas; o recorde fica neste navegador.</p><div className="puzzle-rules"><span><b>3:00</b> corrida</span><span><b>∞</b> treino</span><span><b>{best}</b> recorde</span></div><button className="analyze" onClick={()=>start(false)}>Começar corrida</button><button className="refine-move" onClick={()=>start(true)}>Treinar sem tempo</button></div>:
+    <div className="puzzle-game"><div className={`puzzle-board ${shake?'shake':''}`}><Board sound clearMarks={index+round*100} fen={fen} flipped={new Chess(current.fen).turn()==='b'} selected={selected} setSelected={setSelected} move={move} last={null} classification={null}/></div><aside className="puzzle-panel"><div className="puzzle-score"><span><small>TEMPO</small><b className={!unlimited&&seconds<=20?'danger':''}>{unlimited?'∞':clock}</b></span><span><small>PONTOS</small><b>{score}</b></span><span><small>ERROS</small><b>{unlimited?errors:'●'.repeat(errors)+'○'.repeat(3-errors)}</b></span></div>{phase==='running'?<><span className="puzzle-theme">{current.theme} · nível {current.rating}</span><h3>{current.title}</h3><p className={message.startsWith('Esse')?'wrong':''}>{message}</p><div className="puzzle-progress"><i style={{width:`${Math.min(100,(score%PUZZLES.length+1)/PUZZLES.length*100)}%`}}/></div><small>Rodada {round+1} · puzzle {(index%PUZZLES.length)+1}/{PUZZLES.length}</small>{unlimited&&<button className="refine-move" onClick={()=>{clearTimeout(reply.current);const next=index+1;load(next,next>=PUZZLES.length?round+1:round);}}>Pular puzzle →</button>}</>:<div className="puzzle-result"><span>FIM DA CORRIDA</span><strong>{score}</strong><p>{score>best?'Novo recorde!':'Recorde: '+best}</p><button className="analyze" onClick={()=>start(unlimited)}>Jogar novamente</button><button onClick={close}>Voltar à análise</button></div>}</aside></div>}
+  </section></div>;
+}
