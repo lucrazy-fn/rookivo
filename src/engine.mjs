@@ -2,7 +2,8 @@ import { parseInfo, terminalScore } from './chess.mjs';
 
 export class Engine {
   constructor() {
-    this.worker = new Worker('/engine/stockfish-19-lite-single.js');
+    const url = typeof document === 'undefined' ? '/engine/stockfish-19-lite-single.js' : new URL('engine/stockfish-19-lite-single.js', document.baseURI).href;
+    this.worker = new Worker(url);
     this.pending = null;
     this.worker.onmessage = e => String(e.data).split('\n').forEach(line => this.pending?.line(line));
     this.worker.onerror = () => this.pending?.fail(new Error('Não foi possível carregar Stockfish. Execute npm install e recarregue.'));

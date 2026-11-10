@@ -197,7 +197,7 @@ export default function Page() {
   const player=(white:boolean)=><div className="player"><span className={'avatar '+(white?'white':'')}><Piece type="k" color={white?'w':'b'}/></span><div><strong>{white?whiteName:blackName}</strong><small>{white?'Peças brancas':'Peças pretas'}{game.headers[white?'WhiteElo':'BlackElo'] ? ` · ${game.headers[white?'WhiteElo':'BlackElo']}`:''}</small></div><span className="player-result">{game.headers.Result || '*'}</span></div>;
 
   return <div className="shell">
-    <header className="topbar"><a href="/" className="brand"><img src="/rookivo-icon.svg" alt=""/><span className="brand-name">Rookivo</span></a><div className="header-actions"><button className="quiet puzzle-launch" onClick={()=>setPuzzleRush(true)}>Puzzles</button><button className="quiet" onClick={()=>setAnalysisTab('coach')}>Treinador</button><button className="quiet" onClick={()=>{setImporting(true);setImportError('');}}>Importar PGN</button></div></header>
+    <header className="topbar"><a href="./" className="brand"><img src="rookivo-icon.svg" alt=""/><span className="brand-name">Rookivo</span></a><div className="header-actions"><button className="quiet puzzle-launch" onClick={()=>setPuzzleRush(true)}>Puzzles</button><button className="quiet" onClick={()=>setAnalysisTab('coach')}>Treinador</button><button className="quiet" onClick={()=>{setImporting(true);setImportError('');}}>Importar PGN</button></div></header>
     <main>
       <div className="workspace">
         <aside className="library panel"><div className="section-heading"><h2>Suas partidas</h2><span className="tag">CHESS.COM</span></div>

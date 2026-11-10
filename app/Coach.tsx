@@ -61,7 +61,8 @@ export default function Coach({localExplanation,context,moveLabel,evidence,selec
     <button className="analyze" disabled={!localExplanation} onClick={()=>setShowLocal(true)}>Explicar com Stockfish</button>
     {!localExplanation&&<p>Analise a partida e selecione um lance da partida para explicar.</p>}
     {showLocal&&localExplanation&&<div className="coach-answer" aria-live="polite"><strong>Explicação do Stockfish · {moveLabel}</strong>{localExplanation.facts.map((text:string,i:number)=><p key={i}>{text}</p>)}{localExplanation.bestLine&&<p><b>Melhor continuação:</b><br/>{localExplanation.bestLine}</p>}{localExplanation.playedLine&&<p><b>Linha do lance jogado:</b><br/>{localExplanation.playedLine}</p>}<small>Profundidade {localExplanation.depth}. Texto gerado por regras a partir da posição e da análise; não é uma explicação escrita pelo motor. Uma busca mais profunda pode mudar a avaliação.</small></div>}
-    <hr/>
+    {typeof document !== 'undefined'&&document.documentElement.classList.contains('static-pages')&&<p className="coach-privacy">Nesta versão do GitHub Pages, a IA externa não está disponível. A explicação com Stockfish funciona aqui mesmo no navegador.</p>}
+    <div className="remote-coach"><hr/>
     <h3>IA opcional para explicar e revisar os rótulos</h3>
     <p>O Stockfish calcula as variantes. A IA pode sugerir outra classificação compatível com essas evidências. Você decide se aplica.</p>
     <label htmlFor="ai-provider">Serviço de IA</label><select id="ai-provider" value={provider} onChange={e=>{setProvider(e.target.value);setKey('');setModel('');}}>{Object.entries(providers).map(([id,p])=><option key={id} value={id}>{p.name}</option>)}</select>
@@ -80,6 +81,6 @@ export default function Coach({localExplanation,context,moveLabel,evidence,selec
     {busy&&<button onClick={()=>{pending.current?.abort();setBusy(false);setStatus('Cancelado. Sugestões já recebidas foram mantidas.');}}>Cancelar consulta</button>}
     {error&&<p className="error" role="alert">{error}</p>}
     {!!suggestions.length&&<div className="ai-suggestions"><h4>Sugestões da IA · {suggestions.filter(s=>s.kind!==s.originalKind).length} alterações</h4><div className="ai-suggestions-list">{suggestions.map(s=><article key={s.ply}><strong>{evidence.find(m=>m.ply===s.ply)?.number}{evidence.find(m=>m.ply===s.ply)?.color==='brancas'?'.':'...'} {evidence.find(m=>m.ply===s.ply)?.move} · {evidence.find(m=>m.ply===s.ply)?.color}<br/>{labels[s.originalKind]} → {labels[s.kind]}</strong><p>{s.reason}</p></article>)}</div><button className="analyze" disabled={busy||applied} onClick={()=>{onApply(suggestions);setApplied(true);}}>{applied?'Aplicadas · veja Resumo ou Lances':'Aplicar sugestões ao resumo'}</button><p>Os rótulos aplicados recebem a marca IA. A precisão e o rating não são alterados pela IA.</p></div>}
-    {answer&&<div className="coach-answer" aria-live="polite"><strong>Explicação da IA</strong><p>{answer}</p><small>A explicação pode conter erros; confira as variantes no tabuleiro.</small></div>}
+    {answer&&<div className="coach-answer" aria-live="polite"><strong>Explicação da IA</strong><p>{answer}</p><small>A explicação pode conter erros; confira as variantes no tabuleiro.</small></div>}</div>
   </section>;
 }

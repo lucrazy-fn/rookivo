@@ -4,6 +4,10 @@ Site de análise de xadrez em português. Projeto local executável com React, T
 
 O ícone próprio de torre está em `public/rookivo-icon.svg` e também é usado como favicon. O tabuleiro ocupa mais espaço na versão desktop, e a lista de partidas vazia ficou mais compacta.
 
+## GitHub Pages
+
+O fluxo em `.github/workflows/pages.yml` compila e publica a versão estática a cada envio para `main`. No repositório, escolha **Settings → Pages → Build and deployment → Source: GitHub Actions**. O endereço esperado é `https://lucrazy-fn.github.io/rookivo/`. A análise Stockfish, o histórico público do Chess.com, a importação de PGN e os puzzles rodam no navegador. A IA externa com token precisa da rota `/api/coach`, que o GitHub Pages não executa; ela fica oculta nessa versão. A explicação local com Stockfish continua funcionando. O site local iniciado por `iniciar.bat` mantém a rota de IA.
+
 ## Iniciar no Windows com dois cliques
 
 Extraia o ZIP completo e abra `iniciar.bat`. Ele verifica o Node.js, instala as dependencias na primeira execucao e inicia o site. O navegador abre automaticamente assim que o servidor estiver pronto. Mantenha a janela aberta. Para encerrar, pressione Ctrl+C ou feche a janela. Requer Node.js 22.13 ou superior com npm.
